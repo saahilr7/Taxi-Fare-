@@ -1,0 +1,638 @@
+---
+title: "regression project"
+author: "Saahil Rasheed"
+date: "10/11/2019"
+output: html_document
+---
+
+
+##Regression Project
+#Saahil Rasheed
+#U85555983
+
+#Pre-processing
+
+#Loading all the libraries here to keep the code clean and 
+#Loading the Chicago cabs data set and storing it in a data frame called "taxi".
+```{r}
+rm(list=ls())
+library(rio)
+library(tidyverse)
+library(corrplot)
+library(Hmisc)
+library(car)
+library(moments)
+
+taxi=import("6304 Regression Project Data.csv")
+colnames(taxi)=tolower(make.names(colnames(taxi)))
+attach(taxi)
+names(taxi)
+```
+Setting seed = U Number) and take a random sample of 100
+```{r}
+set.seed(85555983)
+my.taxi=taxi[sample(1:nrow(taxi),100,replace=FALSE),]
+```
+
+Cleaning the dataset by removing records where Trip Seconds and Trip Miles are 0. 
+I did this because when both of the above conditions were true, some records had a fare price. I expect the fare to be nill when a taxi trip has lasted for 0 seconds or if the trip lasted for 1 mile.
+```{r}
+my.taxi = subset(my.taxi,trip_seconds!=0 & trip_miles!=0)
+attach(my.taxi)
+#my.taxi = filter(my.taxi, trip_seconds!=0)
+```
+
+
+
+#Analysis
+
+
+#Analysis Part 1
+
+Summaries of continuous variables and density plots along with statistical analysis for each.
+
+##Trip Seconds:
+```{r}
+summary(trip_seconds)
+plot(density(trip_seconds),lwd=3,main="Density Plot of Trip Seconds")
+
+
+sd(trip_seconds)
+quantile(trip_seconds,probs=seq(0,1,.25))
+skewness(trip_seconds)
+kurtosis(trip_seconds)
+```
+Interpretation: 
+Trip Seconds has a highly right-skewed distribution with a mean of 775 trip seconds. This is proved by:
+Skewness= 4.83, which is much greater than 0. (Skewness of 0 means normal distribution) 
+Mean (775) > Median (540) [Right Skewed if Mean is greater than Median]
+
+The Kurtosis is 32.94 which signifies that most of the data is concentrated on the tails. In Trip Seconds, most of the data is concentrated on the lower tail from 0 to 2000 trip seconds. (left-hand side of the density plot)
+
+The Standard Deviation is 906.62. It shows the deviation of Trip Seconds from the mean value of Trip Seconds.
+This is a high value indicating that the values are diffused or spread over a wide range. (Wide Confidence Interval)
+This is also proved by the quantile and density plot which shows the range of all the values in this variable.
+
+##Trip Miles:
+```{r}
+summary(trip_miles)
+plot(density(trip_miles),lwd=3,main="Density Plot of Trip Miles")
+
+#standard Deviation of Trip Miles:
+sd(trip_miles)
+quantile(trip_miles,probs=seq(0,1,.25))
+#Skewness of Trip Miles:
+skewness(trip_miles)
+#Kurtosis of Trip Miles
+kurtosis(trip_miles)
+```
+Interpretation of Trip Miles:
+Trip Miles has a right-skewed distribution with a mean of 3.3 trip miles. This is proved by:
+Skewness= 2.14, which is greater than 0. (Skewness of 0 means normal distribution) 
+Mean (3.3) > Median (1.4)
+
+The Kurtosis is 6.81 which signifies that most of the data is concentrated on the tails (Kurtosis greater than 3). In Trip Miles, most of the data is concentrated on the lower tail from 0 to 4 miles. 
+
+The Standard Deviation is 4.87 (miles) It shows the deviation of Trip Miles from the mean value of Trip Miles
+This is a high value indicating that the values are diffused or spread over a wide range. (Wide Confidence Interval). Because of this wide Confidence Interval, we are not confident when estimating the value of the mean.
+This is also proved by the quantile and density plot which shows the range of all the values in this variable.
+
+##Fare
+```{r}
+summary(fare)
+plot(density(fare),lwd=3,main="Density Plot of Fare")
+
+sd(fare)
+quantile(fare,probs=seq(0,1,.25))
+skewness(fare)
+kurtosis(fare)
+
+```
+Interpretation of Fare:
+Fare has a right-skewed distribution with a mean of 13.44 dollars (assuming fare to be in dollars). This right-skewdness is proved by:
+Skewness= 1.74, which is greater than 0. (Skewness of 0 means normal distribution) 
+Mean (13.44) > Median (8.25)
+
+The Kurtosis is 4.82 which signifies that most of the data is concentrated on the tails (Kurtosis greater than 3). In Fare, most of the data is concentrated on the lower tail from 0 to 20 dollars. 
+
+The Standard Deviation is 12.2 (dollars). It shows the deviation of Fare from the mean value of Fare ($13.44)
+This is a high value indicating that the values are diffused or spread over a wide range. This is also proved by the quantile and density plot which shows the range of all the values in this variable.
+
+The high standard deviation also means that Fare has a Wide Confidence Interval. Because of this wide Confidence Interval, we are not very confident when estimating the value of the mean.
+
+
+##Tips
+```{r}
+summary(tips)
+plot(density(tips),lwd=3,main="Density Plot of Tips")
+
+sd(tips)
+quantile(tips,probs=seq(0,1,.25))
+skewness(tips)
+kurtosis(tips)
+```
+Interpretation of Tips:
+Tips is right-skewed with a mean of 1.28 dollars. This right-skewdness is proved by:
+Skewness= 2.03, which is greater than 0. (Skewness of 0 means normal distribution)
+Mean (1.28) > Median (0.0)
+
+The Kurtosis is 6.61 which signifies that most of the data is concentrated on the tails (Kurtosis greater than 3). In Fare, most of the data is concentrated on the lower tail from 0 to 2 dollars. 
+
+The Standard Deviation is 2.17 (dollars). It shows the deviation of Tips from the mean value of Tips ($1.28)
+This is a high value indicating that the values are diffused or spread over a wide range. This is also proved by the quantile and density plot which shows the range of all the values in this variable.
+
+This high standard deviation also means that Tips has a Wide Confidence Interval. Because of this wide Confidence Interval, we are not very confident when estimating the value of the mean of Tips (Tips mean can vary).
+
+
+##Extras
+```{r}
+summary(extras)
+plot(density(extras),lwd=3,main="Density Plot of Extras")
+
+sd(extras)
+quantile(extras,probs=seq(0,1,.25))
+skewness(extras)
+kurtosis(extras)
+```
+Interpretation of Extras:
+Extras has a right-skewed distribution with a mean of 0.73 dollars. This right-skewdness is proved by:
+Skewness= 1.85, which is slightly greater than 0. (Skewness of 0 means normal distribution)
+Mean (0.73) > Median (0.0)
+
+The Kurtosis is 5.42 which signifies that most of the data is concentrated on the tails (Kurtosis greater than 3). In Fare, most of the data is concentrated on the lower tail from 0 to 1 dollar. 
+
+The Standard Deviation is 1.27 (dollars). It shows the deviation of Extras from the mean value of Extras ($0.73)
+This is a relatively high value indicating that the values are diffused or spread over a wide range. This is also proved by the quantile and density plot which shows the range of all the values in this variable.
+
+This high standard deviation also means that Extras has a Wide Confidence Interval. Because of this wide Confidence Interval, we are not very confident when estimating the value of the mean of Extras (Extras mean can vary).
+
+
+
+
+##Trip Total
+```{r}
+summary(trip_total)
+plot(density(trip_total),lwd=3,main="Density Plot of the Total Trip Price")
+
+sd(trip_total)
+quantile(trip_total,probs=seq(0,1,.25))
+skewness(trip_total)
+kurtosis(trip_total)
+```
+Interpretation of Trip Total:
+Trip Total has a right-skewed distribution with a mean of 15.46 dollars. This right-skewdness is proved by:
+Skewness= 1.65, which is slightly greater than 0. (Skewness of 0 means normal distribution) 
+Mean (15.46) > Median (9.25)
+
+The Kurtosis is 4.29 which signifies that most of the data is concentrated on the tails (Kurtosis greater than 3). In Fare, most of the data is concentrated on the lower tail from 0 to 20 dollars. 
+
+The Standard Deviation is 14.12 (dollars). It shows the deviation of Trip Total from the mean value of Trip Total ($15.46)
+This is a relatively high value indicating that the values are diffused or spread over a wide range. This is also proved by the quantile and density plot which shows the range of all the values in this variable.
+
+This high standard deviation also means that Trip Total has a Wide Confidence Interval. Because of this wide Confidence Interval, we are not very confident when estimating the value of the mean of Total Trip price (Total Trip mean can vary).
+
+
+
+#Analysis Part 2
+
+Making Payment Type (payment_type) a factor variable:
+```{r}
+my.taxi$payment_type=as.factor(my.taxi$payment_type)
+str(my.taxi)
+```
+
+Creating a table which displays the number of cases in each level of Payment Type:
+The levels are:
+Cash (Base Class),
+Credit Card,
+Other
+```{r}
+table(payment_type)
+
+```
+
+#Analysis Part 3
+
+Copying the continuous variables to a new data object called corr_matrix.
+```{r}
+corr_matrix=subset(my.taxi,select=c("trip_seconds","trip_miles","fare","tips","extras","trip_total"))
+```
+
+Correlation Matrix with p values:
+```{r}
+cm=rcorr(as.matrix(corr_matrix))
+cm
+
+```
+Interpretation of Correlation Matrix:
+
+The Correlation Matrix gives the correlation (Multiple R or Correlation Coefficients) between each pair of the continuous independent variables that we have taken in the analysis.
+
+There are two matrices created. 
+The First matrix shows the Correlation Coefficient values.
+The second matrix shows the p-values for each Correlation coefficient. This signifies the the amount of confidence we have in determining whether the values in the first matrix are equal to or not equal to zero. (Hypothesis Test)
+
+In Layman's terms, the Correlation Matrix is used to display a matrix with a set of values, where each value is the measure of how closely two variables move in relation to one another. In other words,it means how much a single variable is affected by change in another variable.
+
+For example, [to explain this to a Non-statistician]
+i) Correlation between Trip Miles and Fare = 0.82.
+This is a positive and pretty strong correlation (approaching 1) This means that with a positive change (increase) in Trip Mile, there is a high probability of Fare price increasing as well. (Also means if there a decrease in Trip Mile, it is highly likely that fare will decrease as well)
+
+ii) Correlation between Extras and Trip Seconds = 0.19.
+This is a low positive correlation (approaching 0) and this means that if there is a change in Trip Seconds, there is a low probability of a positive change in Extras and vice versa. In other words, it is most likely there will be no change in the latter variable for any change in the former variable.
+
+[A correlation coefficient of 0 shows no relationship between the change in two variables.]
+
+#Analysis Part 4
+
+Regression Model using trip_seconds, trip_miles and payment_type (Fare as dependent variable and 95% Confidence interval on beta coefficients):
+```{r}
+regout1=lm(fare~trip_seconds+trip_miles+payment_type,data=my.taxi)
+summary(regout1)
+
+plot(fare,regout1$fitted.values,pch=19,main="Actual v. Fitted Values for Fare and other Independent Variables")
+abline(0,1,col="red",lwd=3)
+
+regout1.coefficients=cbind("Beta Coefficients"=coef(regout1),confint(regout1))
+regout1.coefficients
+```
+Interpretation:
+
+Adjusted R-square value of 0.7474 or 74%. This means that the model explains roughly 74% of the variation in the fare price.
+
+The Regression Equation for the model created above is, 
+Fare(Y) = 3.36 + 0.005026 m1+ 1.383 m2+ 3.376 m3+ 1.546 m4,
+Where m1,m2,m3,m4 are the slopes of trip_seconds, trip_miles,Credit Card and Other variables respectively.
+
+•	Beta Coefficient 1 or trip seconds: It can be said that with every second increase in the “trip seconds” variable(m1), the fare(y) for taxi is expected to increase by 0.005 dollars. (Assuming it to be in $ here)
+-The p value for this Beta Coefficient is 2.64e-05 (less than 5%), which means that this coefficient is significant, and we can be confident that the actual value for trip seconds isn’t 0. (Rejecting the Null Hypothesis)
+
+•	Beta Coefficient 2 or trip miles: It can be said that with every single increase (+1) in the “trip miles” variable, the fare is expected to increase by $1.38
+- The p value for this Beta Coefficient is 3.47e-09 which is much lesser than 5%. In other words, this coefficient is significant, and we can be confident that the actual value for trip miles isn’t 0. (Rejecting the Null Hypothesis)
+
+•	Beta Coefficient 3 or Payment Type:Credit Card: The base value for factor variable, Payment Type is “Cash”.
+It can be said that with every dollar increase (+1) in Credit Card price, the fare is expected to increase by $3.37
+--The p value for this Beta Coefficient is 0.02255 (less than 5%), which means that this coefficient is significant, and we can be confident that the actual value isn’t 0. (Rejecting the Null Hypothesis)
+
+•	Beta Coefficient 4 or Payment Type:Other: 
+It can be said that with every dollar increase (+1) in payment by Other means, the fare is expected to increase by $1.54
+--The p value for this Beta Coefficient is 0.80939 (more than 5%), which means that this coefficient is not significant, and we cannot be confident that the actual value isn’t 0. (Failing to reject the Null Hypothesis)
+
+
+•	Beta Coefficient 0 or Payment Type: Cash (For the intercept): β0 value is 3.367845, which basically means that if the taxi trip has no trip seconds, no trip miles, no payment through Credit Card or "Other" means, the fare is expected to be $3.367 to be paid by Cash (Base level of factor variable). In other words, a person pays $3.36 for a taxi trip that did not happen.
+
+
+
+```{r}
+regout1.coefficients=cbind("Beta Coefficients"=coef(regout1),confint(regout1))
+regout1.coefficients
+```
+Confidence Intervals:
+
+The ranges for the Confidence Intervals (C.I) of Trip Seconds, Payment type:Other, Payment type:Credit Card and Trip Miles is pretty wide.
+Thus, we cannot say with confidence that the beta coefficient values for each of those variables are as stated, because of the wide range of the C.I’s. [even though the p-values are significant for all of them.
+
+The Confidence Interval for Trip Seconds is tight. This means that we can estimate with confidence the beta coefficient value for Trip Seconds.
+
+(It’s always good to cross-check with Confidence Intervals)
+
+
+#Analysis Part 5
+
+Investigating different Regression Models, trying to improve the model in Analysis Part 4.
+
+Interactions between Trip seconds and Trip Miles is denoted by "trip_seconds:trip_miles".
+
+##Regression Model 2:All independent variables and Interaction between "Trip seconds" and "Trip Miles"
+```{r}
+regout2=lm(fare~trip_seconds+trip_miles+payment_type+trip_seconds:trip_miles,data=my.taxi)
+summary(regout2)
+
+```
+Interpretation:
+Improved Adjusted R-square value of 0.88 or 88%. This means that the model explains roughly 88% of the variation in the fare price.
+
+This is a big improvement from the previous model and I've decided to keep the interaction variable due to the fact that it is significant (except for payment_type Credit Card level.)  
+
+##Regression Model 3: Keeping the second model and applying square transform on Trip Seconds.
+All independent variables+Interaction+Trip Seconds Square
+```{r}
+regout3=lm(fare~trip_seconds+trip_miles+payment_type+I(trip_seconds^2)+trip_seconds:trip_miles,data=my.taxi)
+summary(regout3)
+
+```
+Interpretation:
+
+Slightly improved Adjusted R-square value of 0.89 or 89%. This means that the model explains roughly 88% of the variation in the fare price.
+
+This is a small improvement from the previous model but the interaction variable along with Credit Card level are insignificant in this model
+
+
+
+##Regrssion Model 4: Previous Model and applying Squared Transform on Trip Miles
+All independent variables+Interaction+Trip Seconds Squared+Trip Miles Squared
+```{r}
+regout4=lm(fare~trip_seconds+trip_miles+payment_type+I(trip_seconds^2)+I(trip_miles^2)+trip_seconds:trip_miles,data=my.taxi)
+summary(regout4)
+
+```
+Interpretation:
+
+a BIG improvement in  Adjusted R-square value of 0.9561 or 95% from 89%. This means that the model explains roughly 95% of the variation in the fare price.
+
+This is a big improvement from the previous model with all independent variables significant except for Credit Card level and Other level along with the Intercept (Cash). All the levels in payment_type are insignificant.
+
+
+##Regression Model 5: Previous Model but excluding the Payment Type
+
+All independent variables+Interaction+Trip Seconds Squared+Trip Miles Squared-Payment Type
+```{r}
+regout5=lm(fare~trip_seconds+trip_miles+I(trip_seconds^2)+I(trip_miles^2)+trip_seconds:trip_miles,data=my.taxi)
+summary(regout5)
+
+plot(fare,regout5$fitted.values,pch=19,main="Actual v. Fitted Values")
+abline(0,1,col="red",lwd=3)
+```
+Interpretation:
+
+A small improvement in Adjusted R-square value of 0.9566 or 95.66% from 95.61%. This means that the model explains roughly 95% of the variation in the fare price.
+
+This is a big and important improvement from the previous model because we have removed payment type from consideration in our analysis. By doing this, we are reducing the risk of overfitting the model. 
+All the variables except the intercept are significant. 
+This is currently our best model which gets the best fit to the sample.
+
+
+
+##Regression Model 6: Investigating further, by removing Trip Miles Squared Transform.
+TS+TM++Interaction+Trip Seconds Squared
+```{r}
+regout6=lm(fare~trip_seconds+trip_miles+I(trip_seconds^2)+trip_seconds:trip_miles,data=my.taxi)
+summary(regout6)
+
+
+```
+Interpretation:
+
+By investigating further, there is a decrease in Adjusted R-square value which is 0.87 or 87%. This means that the model explains roughly 87% of the variation in the fare price.
+
+
+##Regression Model 7: Exploring further by removing payment type, TM2 and TM
+TS+Interaction+Trip Seconds Squared+Trip Miles Squared-Payment Type-tm2-tm
+```{r}
+regout7=lm(fare~trip_seconds+I(trip_seconds^2)+trip_seconds:trip_miles,data=my.taxi)
+summary(regout7)
+```
+Interpretation:
+
+By investigating further, there is a decrease in Adjusted R-square value which is 0.86 or 86%. This means that the model explains roughly 86% of the variation in the fare price.
+
+
+
+
+##Regression Model 8:
+tm+ts+Trip Seconds Squared+Trip Miles Squared
+```{r}
+regout8=lm(fare~trip_seconds+trip_miles+I(trip_seconds^2),data=my.taxi)
+summary(regout8)
+```
+Interpretation:
+
+Adjusted R-square value which is 0.8785 or 87%. This means that the model explains roughly 87% of the variation in the fare price.
+
+
+
+##Regression Model 9. Investigating Further.
+Trip Seconds+Trip Miles+Payment Type+TM2+Interaction
+```{r}
+regout9=lm(fare~trip_seconds+trip_miles+payment_type+I(trip_miles^2)+trip_seconds:trip_miles,data=my.taxi)
+summary(regout9)
+```
+Interpretation:
+
+Adjusted R-square value which is 0.9434 or 94.34%. This means that the model explains roughly 94% of the variation in the fare price.
+
+This a good model but falls slightly short of Regression Model 5 which has an adjusted R-square of 95.66%.
+
+
+
+
+##Regression Model 10. Trying to reduce the risk of overfitting. Removing payment type from Regression Model 9.
+```{r}
+regout10=lm(fare~trip_seconds+trip_miles+I(trip_miles^2)+trip_seconds:trip_miles,data=my.taxi)
+summary(regout10)
+```
+Interpretation:
+
+Adjusted R-square value which is 0.9392 or almost 94%. This means that the model explains roughly 94% of the variation in the fare price.
+ 
+This is a very good model and it reduces the risk of overfitting by taking out payment type from consideration.
+
+
+
+##Conductive Stepwise Regression.
+```{r}
+regout11=step(lm(fare~trip_miles+trip_seconds,data=my.taxi),direction = "both")
+summary(regout11)
+
+```
+Interpretation:
+Low adjusted R-square value of 0.73.
+
+Previous models are better.
+
+##CHECKING FOR OUTLIERS
+##Constructing Boxplot to check for any outliers in fare.
+
+```{r}
+boxplot(fare)
+
+outliers = filter(my.taxi,fare>40)
+outliers
+```
+Interpretation:
+
+There are quite a few outliers in the fare variable and I filtered them out (fare > $40) using the filter function. 
+I have decided not to remove them because in my analysis in Part 8, I identify the same points which have high leverage or influence on the analysis and I have removed those records from my.taxi sample in that step.
+
+I have created a temporary data frame called "outliers" to refer to these outliers.
+
+##Removing two of these outliers:
+```{r}
+my.taxi_clean = filter(my.taxi,taxi_id!=4444 & taxi_id!=4100)
+
+```
+
+I removed these two because both of them had Trip Mile of of 1 (which is very low) but a very high fare price. This seemed aberrant to me because I don't know a lot of people who'd actually pay 40 bucks for a 1 mile trip.
+
+In other words, these were clearly outliers and my sample of these.
+
+##Rerunning Regression Model 5 (which was the best Regression Model)
+##NOW CALLED REGRESSION MODEL 5 BEST.
+```{r}
+regout5_best=lm(fare~trip_seconds+trip_miles+I(trip_seconds^2)+I(trip_miles^2)+trip_seconds:trip_miles,data=my.taxi_clean)
+summary(regout5_best)
+
+```
+Interpretation: 
+
+
+Adjusted R square of 0.9684 or almost 97%. This means that the model explains roughly 97% of the variation in the fare price.
+
+This is the best fit to the sample my.taxi that I have found in my analysis. 
+
+
+#Analysis Part 6
+In my analysis, out of all the Regression Models I created in Analysis Part 5, the model which gave me the "best fit" to my sample data is Regression Model 5 - BEST.
+
+Here is the summary report again with the plot and confidence intervals for each beta coefficient:
+```{r}
+regout5_best=lm(fare~trip_seconds+trip_miles+I(trip_seconds^2)+I(trip_miles^2)+trip_seconds:trip_miles,data=my.taxi_clean)
+summary(regout5_best)
+
+plot(my.taxi_clean$fare,regout5_best$fitted.values,pch=19,main="Actual v. Fitted Values")
+abline(0,1,col="purple",lwd=3)
+
+regout5_bb.=cbind("Beta Coefficients"=coef(regout5_best),confint(regout5_best))
+regout5_bb.
+
+```
+Interpretation:
+
+In my analysis, this is the "best" fit to my sample data because:
+
+Highest Adjusted R-square value of 0.9684 or 96.84%. This means that the model explains roughly 97% (rounding up) of the variation in the fare price.
+
+We have removed payment type from consideration. By doing this, we are reducing the risk of overfitting the model. 
+All the variables except the intercept are significant. 
+
+From the Actual vs Fitted Values plot, the regression line fits most of the data points but for one or two observations.
+
+##Checking the satisfaction of LINE Assumptions:
+
+##Linearity
+```{r}
+plot(my.taxi_clean$fare,regout5_best$fitted.values,pch=19,main="Actual v. Fitted Values of Regression Model 5 - BEST")
+abline(0,1,col="red",lwd=3)
+```
+Interpretation:
+
+In the above plot, the actual data points from the cleansed my.taxi_clean sample are plotted against the model’s fitted values. Most of the data values follow a linear direction. One or two data points in the middle are do not follow a linear path but these are negligible, considering most of the observations follow a linear path.
+
+Conclusion: The model is in conformance with the Linearity Assumption.
+
+##Normality Assumption
+```{r}
+qqnorm(regout5_best$residuals,pch=19,
+       main="Taxi Normality Plot")
+qqline(regout5_best$residuals,lwd=3,col="blue")
+
+```
+Interpretation:
+In the above graph, the model’s residuals or error values are plotted to check for the Normality assumption.
+
+It can be seen that most of the points follow the normality distribution but a few data points at both the tail ends seem to taper off away from the normality line. However, these are trivial or negligible considering most of the observations follow the normal line.
+It can be concluded that the Normality assumption is satisfied by the model. 
+
+##Equality of Variances Assumption:
+```{r}
+plot(my.taxi_clean$fare,rstandard(regout5_best),pch=19,main="Taxi Residual Plot")
+abline(0,0,col="purple",lwd=3)
+
+```
+Interpretation:
+
+For evaluating the Equality of Variances assumption, the actual charges for the cleansed sample (my.taxi_clean) are plotted against the standardized residuals from the model.
+
+It can be seen that most of the data point are 1 or 2 standard deviations away from the mean (0) but some data points are more than 2 standard deviations from the mean. However, these outliers are low compared to most of the observations.
+
+The Equality of Variances Assumption is satisfied by the model.
+
+
+
+
+#Analysis Part 7
+```{r}
+lev=hat(model.matrix(regout5_best))
+plot(lev,pch=19,ylim=c(0,1.0))
+abline(3*mean(lev),0,col="red",lwd=3)
+
+high_lev = my.taxi_clean[lev>(3*mean(lev)),]
+```
+Interpretation:
+To identify the high leverage points from my model, I plotted a red line 3 times the mean of lev (data points in matrix) to check for any aberrances.
+From my graph, there are FIVE high leverage data points in the model. 
+
+I stored these high leverage points in a data fram called high_lev.
+
+#Removing the high leverage points
+```{r}
+my.taxi_clean = filter(my.taxi,taxi_id!=537 & taxi_id!=3624 & taxi_id!=8760 & taxi_id!=4373 & taxi_id!=7833)
+```
+
+#Rerunning the Regression 5 BEST MODEL after removing these outliers.
+```{r}
+regout5_best_clean=lm(fare~trip_seconds+trip_miles+I(trip_seconds^2)+I(trip_miles^2)+trip_seconds:trip_miles,data=my.taxi_clean)
+summary(regout5_best_clean)
+
+plot(my.taxi_clean$fare,regout5_best_clean$fitted.values,pch=19,main="Actual v. Fitted Values")
+abline(0,1,col="red",lwd=3)
+
+```
+Interpretation:
+
+After removing the outliers and re-running the model, I got the BEST adjusted R-square value of 0.9846 or 98%. This means that the model explains roughly 98% of the variation in the fare price.
+
+
+
+#Analysis Part 8
+Pulling a new sample from the original data set "taxi". (Taking seed as U Number plus 5)
+```{r}
+set.seed(85555988)
+my.taxi2=taxi[sample(1:nrow(taxi),100,replace=FALSE),]
+```
+
+
+##Data Cleansing
+```{r}
+my.taxi2 = subset(my.taxi2,trip_seconds!=0 & trip_miles!=0)
+
+```
+
+```{r}
+boxplot(my.taxi2$fare)
+
+outliers_new = filter(my.taxi2,fare>40)
+outliers_new
+
+```
+##Removing two of these outliers:
+```{r}
+my.taxi2_clean = filter(my.taxi2,taxi_id!=8445 & taxi_id!=2366)
+
+```
+
+
+##Conducting Regression Analysis using the best model that I found in Analysis Part 6:
+```{r}
+regout_new=lm(fare~trip_seconds+trip_miles+I(trip_seconds^2)+I(trip_miles^2)+trip_seconds:trip_miles,data=my.taxi2_clean)
+summary(regout_new)
+
+regout_new.coefficients=cbind("Beta Coefficients"=coef(regout_new),confint(regout_new))
+regout_new.coefficients
+
+plot(my.taxi2_clean$fare,regout_new$fitted.values,pch=19,main="Actual v. Fitted Values")
+abline(0,1,col="red",lwd=3)
+```
+Interpretation:
+
+After cleansing and running the best model that I found in Analysis Part 6, I found that the model does extremely well on this new sample. I got the an adjusted R-square value of 0.9947 or 99%. This means that the model explains roughly 99% of the variation in the fare price.
+Additionally, the Confidence Intervals for most of the beta co-efficients is tight.This means that we can estimate with confidence the values of the beta co-efficients.
+
+From the Actual vs Fitted Values plot, the regression line fits the data points almost perfectly. I couldn't ask for better from this model.
+
+
+Thank You,
+Saahil Rasheed
+
+
+
